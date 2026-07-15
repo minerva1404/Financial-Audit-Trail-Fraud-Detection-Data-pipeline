@@ -24,20 +24,20 @@ By retaining the raw dataset in its original form, the Bronze layer establishes 
 ## 🔄 Bronze Layer Workflow
 
 User Generation
-(10,000 Users)
-          ↓
+(10,000 Users)\
+          ↓\
 Transaction Generation
-(500,000+ Transactions)
-          ↓
+(500,000+ Transactions)\
+          ↓\
 Fraud & Data Quality Injection
 (NULL IDs, Negative Values,
-High-Value Transactions)
-          ↓
+High-Value Transactions)\
+          ↓\
 Raw Data Storage
-(users & raw_transactions)
-          ↓
-Validation Queries
-          ↓
+(users & raw_transactions)\
+          ↓\
+Validation Queries\
+          ↓\
 Bronze Layer Complete
 
 ---
