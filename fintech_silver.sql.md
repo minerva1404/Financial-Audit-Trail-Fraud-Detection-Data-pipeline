@@ -1,10 +1,133 @@
-## Summary:
-•	Transaction Data Cleaning & Normalization: Processed 500K+ raw financial transactions, normalizing amounts, standardizing transaction types, and handling missing or negative values for reliable downstream analytics.\
-•	Status & Fraud Classification: Implemented status flags (INVALID_USER, INVALID_AMOUNT, etc.) and fraud flags (NEGATIVE_BALANCE, HIGH_AMOUNT, EXTREME_AMOUNT, ANOMALOUS_SPIKE) to identify suspicious or anomalous transactions.\
-•	Data Quality Insights: Generated data_quality_issue indicators highlighting missing users, negative amounts/balances, and ingestion anomalies for proactive monitoring.\
-•	Quantified Metrics: Produced validated counts, invalid transaction counts, suspicious transaction counts, and fraud percentage (~5–6%), enabling KPI reporting and dashboard-ready analytics.
+# 🥈 Silver Layer
 
-## Query:
+## Overview
+
+The Silver layer is responsible for transforming raw financial transaction data into a clean, standardized, and analytics-ready dataset. Building upon the Bronze layer, it applies comprehensive data quality validation, normalization, and fraud classification to ensure that downstream analytics are generated from reliable and consistent financial records.
+
+Rather than modifying or removing the original Bronze data, the Silver layer creates a refined version of each transaction by correcting formatting inconsistencies, validating mandatory fields, normalizing transaction values, and identifying suspicious financial activity through rule-based fraud detection.
+
+This stage also generates descriptive status indicators and data quality metrics that provide visibility into invalid records, ingestion issues, abnormal transaction behavior, and potential fraud scenarios. The resulting dataset serves as the trusted source for Gold layer aggregations, KPI computation, audit reporting, and business intelligence.
+
+---
+
+## 🎯 Objectives
+
+* Transform raw financial transaction records into a clean and standardized dataset.
+* Validate mandatory transaction attributes before downstream processing.
+* Normalize transaction amounts and transaction type values for consistent analysis.
+* Detect incomplete, invalid, and inconsistent financial records.
+* Classify suspicious transactions using predefined fraud detection rules.
+* Generate descriptive data quality indicators for monitoring and auditing.
+* Produce a trusted dataset for Gold layer aggregation and KPI generation.
+
+---
+
+## 🔄 Silver Layer Workflow
+
+Bronze Layer
+(raw_transactions)\
+          ↓\
+Data Validation\
+          ↓\
+Data Normalization
+(Transaction Type & Amount)\
+          ↓\
+Status Classification\
+          ↓\
+Fraud Detection\
+          ↓\
+Data Quality Assessment\
+          ↓\
+Silver Layer
+(clean_transactions)
+
+---
+
+## Financial Transaction Transformation
+
+### Purpose
+
+The Financial Transaction Transformation component refines raw financial transactions collected in the Bronze layer into a structured, validated, and analytics-ready dataset. It enforces data quality rules, standardizes transaction attributes, and enriches each record with status flags, fraud classifications, and descriptive quality indicators.
+
+During this transformation process, the pipeline evaluates every transaction for missing customer information, invalid timestamps, negative transaction amounts, ingestion inconsistencies, and abnormal financial activity. Rather than discarding suspicious records, the Silver layer preserves them while assigning meaningful classifications that enable downstream fraud analytics and audit reporting.
+
+By maintaining both validated transaction data and detailed quality metadata, this stage ensures transparency throughout the pipeline while supporting financial monitoring and compliance use cases.
+
+### 🔍 Key Responsibilities
+
+* Reads raw financial transactions from the raw_transactions Bronze table.
+* Standardizes transaction types by converting values to lowercase.
+* Normalizes transaction amounts using absolute values for analytical consistency.
+* Validates mandatory fields including User ID, Transaction Amount, Transaction Timestamp, and Ingestion Timestamp.
+* Detects ingestion anomalies where ingestion timestamps occur before transaction timestamps.
+* Assigns transaction status flags indicating valid and invalid records.
+* Classifies suspicious financial activity using predefined fraud detection rules.
+* Generates descriptive data quality indicators for every transaction.
+* Stores the transformed dataset in the clean_transactions Silver table for downstream aggregation.
+
+### 🛡️ Data Quality Rules
+
+Before records are promoted to the Gold layer, the Silver pipeline applies multiple validation and quality checks to every transaction.
+
+The enforced rules include:
+
+* Missing User IDs are classified as INVALID_USER.
+* Missing Transaction Amounts are classified as INVALID_AMOUNT.
+* Missing Transaction Timestamps are classified as INVALID_TIME.
+* Ingestion timestamps occurring before transaction timestamps are classified as INVALID_INGESTION.
+* Transaction types are standardized to lowercase values.
+* Transaction amounts are normalized using absolute values to eliminate negative formatting inconsistencies.
+* Data quality summaries are generated for every record to simplify downstream monitoring and auditing.
+
+These validation rules improve consistency while preserving traceability for investigation and compliance purposes.
+
+---
+
+## 🚨 Fraud Detection Rules
+
+In addition to validating data quality, the Silver layer applies business-driven fraud detection rules to identify suspicious financial activity.
+
+Transactions are categorized into the following fraud classifications:
+
+* NORMAL – Transaction falls within expected operating thresholds.
+* NEGATIVE_BALANCE – Account balance becomes negative following the transaction.
+* HIGH_AMOUNT – Transaction amount exceeds predefined high-value thresholds.
+* EXTREME_AMOUNT – Exceptionally large transaction amount indicating potential fraudulent behavior.
+* ANOMALOUS_SPIKE – Transaction amount exceeds three times the average transaction value, highlighting unusual spending patterns.
+
+These rule-based classifications provide an explainable foundation for fraud monitoring while supporting future integration with machine learning–based detection models.
+
+---
+
+## 📊 Validation & Monitoring
+
+Following the transformation process, several validation queries are executed to evaluate the quality of the Silver dataset and measure the effectiveness of the cleansing and fraud detection logic.
+
+The validation process reports:
+
+* Total number of Bronze records processed.
+* Total number of Silver records generated.
+* Distribution of transaction status classifications.
+* Distribution of fraud classifications.
+* Number of records containing quality issues.
+* Total invalid transactions.
+* Total suspicious transactions.
+* Overall fraud percentage across the dataset.
+
+These metrics provide operational visibility into data quality while supporting dashboard reporting and audit analysis.
+
+---
+
+## 🗄️ Pipeline Role
+
+The Silver layer serves as the data quality and business rule enforcement stage of the Financial Audit Trail & Fraud Detection pipeline. By validating transaction records, standardizing financial attributes, and enriching data with fraud and quality classifications, it transforms raw financial events into trusted analytical datasets.
+
+This layer bridges the gap between raw ingestion and business intelligence by ensuring that downstream aggregations are performed on consistent, reliable, and well-documented financial data. It also establishes an auditable record of data quality and fraud detection decisions, improving transparency throughout the analytics pipeline.
+
+---
+
+## 📄 Source Code
+
 ```SQL
 CREATE DATABASE IF NOT EXISTS fintech_silver;
 USE fintech_silver;
@@ -85,3 +208,55 @@ SELECT
     ROUND(100 * SUM(CASE WHEN fraud_flag != 'NORMAL' THEN 1 ELSE 0 END)/COUNT(*),2) AS fraud_percent
 FROM clean_transactions;
 ```
+
+---
+
+## 🖥️ Console Output
+
+<img width="1920" height="1080" alt="Screenshot (57)" src="https://github.com/user-attachments/assets/47edc2ca-c193-475f-adb3-9ba7b5f968f2" />
+
+<img width="1920" height="1080" alt="Screenshot (58)" src="https://github.com/user-attachments/assets/ef27adc9-eebb-43ad-8cd5-2ec98b65c23c" />
+
+<img width="1920" height="1080" alt="Screenshot (59)" src="https://github.com/user-attachments/assets/42b93df8-9c79-4848-a2f7-aa051220a864" />
+
+<img width="1920" height="1080" alt="Screenshot (60)" src="https://github.com/user-attachments/assets/23672509-b312-46a1-bcdc-8c551161cd1e" />
+
+<img width="1920" height="1080" alt="Screenshot (61)" src="https://github.com/user-attachments/assets/6d8e443a-ac4f-42f7-b467-614424d88298" />
+
+<img width="1920" height="1080" alt="Screenshot (62)" src="https://github.com/user-attachments/assets/469e8887-b6a6-455b-8ab1-b8d9f54054ad" />
+
+<img width="1920" height="1080" alt="Screenshot (63)" src="https://github.com/user-attachments/assets/d1127c09-1dd6-4c80-83a9-901ebeadcd82" />
+
+---
+
+## 📂 Silver Layer Output
+
+The Silver layer produces a validated and enriched financial transaction dataset optimized for downstream analytics.
+
+MySQL\
+└── fintech_silver/\
+    └── clean_transactions
+
+### Each transaction record contains:
+
+* Transaction ID
+* User ID
+* Transaction Type
+* Normalized Transaction Amount
+* Account Balance After Transaction
+* Transaction Timestamp
+* Ingestion Timestamp
+* Status Flag
+* Fraud Flag
+* Data Quality Issue Summary
+
+The resulting dataset serves as the trusted input for the Gold layer, where business-level aggregations, fraud statistics, audit metrics, transaction trends, and executive KPIs are computed.
+
+---
+
+## ✅ Silver Layer Summary
+
+The Silver layer transforms over 500,000 raw financial transactions into a clean, standardized, and analytics-ready dataset through comprehensive validation, normalization, fraud classification, and data quality assessment. By enriching each transaction with status indicators, fraud flags, and descriptive quality metadata, the pipeline creates a reliable foundation for audit reporting, compliance monitoring, and business intelligence. This layer ensures that downstream analytics are generated from trusted financial data while preserving transparency and traceability across the entire Medallion Architecture.
+
+## Query:
+
