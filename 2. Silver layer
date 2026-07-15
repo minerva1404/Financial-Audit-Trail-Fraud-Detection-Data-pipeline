@@ -257,6 +257,3 @@ The resulting dataset serves as the trusted input for the Gold layer, where busi
 ## ✅ Silver Layer Summary
 
 The Silver layer transforms over 500,000 raw financial transactions into a clean, standardized, and analytics-ready dataset through comprehensive validation, normalization, fraud classification, and data quality assessment. By enriching each transaction with status indicators, fraud flags, and descriptive quality metadata, the pipeline creates a reliable foundation for audit reporting, compliance monitoring, and business intelligence. This layer ensures that downstream analytics are generated from trusted financial data while preserving transparency and traceability across the entire Medallion Architecture.
-
-## Query:
-
