@@ -1,0 +1,308 @@
+# 🥇 Gold Layer
+
+## Overview
+
+The Gold layer represents the business intelligence and analytical stage of the Financial Audit Trail & Fraud Detection pipeline. Building upon the validated and enriched transaction records produced by the Silver layer, it aggregates financial data into business-oriented datasets optimized for reporting, dashboarding, and operational monitoring.
+
+Rather than focusing on individual transaction records, the Gold layer transforms detailed financial events into meaningful business metrics that provide insights into customer activity, fraud distribution, transaction trends, and overall financial health. These aggregated datasets enable financial analysts, auditors, and decision-makers to monitor operational performance while identifying potential risks and unusual transaction patterns.
+
+To support multiple analytical perspectives, the Gold layer generates dedicated summary tables for user-level transaction behavior, fraud distribution analysis, and daily financial KPIs. These data marts serve as the foundation for interactive dashboards, audit reporting, and executive-level business intelligence.
+
+---
+
+## 🎯 Objectives
+
+* Aggregate validated financial transactions into business-ready analytical datasets.
+* Generate user-level transaction summaries for customer activity analysis.
+* Produce fraud distribution metrics for monitoring suspicious financial behavior.
+* Calculate daily operational KPIs for executive reporting and dashboard visualization.
+* Simplify complex transactional data into decision-ready business metrics.
+* Provide optimized data marts for downstream business intelligence and audit analytics.
+
+---
+
+## 🔄 Gold Layer Workflow
+
+Silver Layer
+(clean_transactions)\
+          ↓\
+User-Level Aggregation\
+          ↓\
+Fraud Distribution Analysis\
+          ↓\
+Daily KPI Computation\
+          ↓\
+Business Data Marts\
+          ↓\
+Gold Layer
+(user_transaction_summary
+ fraud_summary
+ daily_transaction_summary)
+
+---
+
+## 📊 Component — Business Analytics & KPI Generation
+
+### Purpose
+
+The Business Analytics component transforms validated financial transactions into high-value analytical datasets that support financial monitoring, fraud analysis, and executive reporting. Rather than exposing individual transaction records, the Gold layer summarizes financial activity into meaningful business metrics that are easier to interpret and visualize.
+
+The aggregation process computes customer-level transaction behavior, fraud category distributions, and daily operational statistics, providing a comprehensive view of transaction health across the financial ecosystem.
+
+These business-ready datasets significantly reduce analytical complexity while improving dashboard performance and enabling faster decision-making for compliance teams, auditors, and business stakeholders.
+
+### 🔍 Key Responsibilities
+
+* Reads validated transaction records from the clean_transactions Silver table.
+* Generates user-level transaction summaries for approximately 10,000 customers.
+* Calculates transaction counts, total deposits, withdrawals, and overall transaction volume.
+* Computes average, maximum, and minimum transaction amounts for each customer.
+* Measures suspicious and invalid transaction percentages at the customer level.
+* Produces fraud distribution statistics across all fraud categories.
+* Calculates daily financial KPIs for operational monitoring.
+* Creates optimized analytical data marts for reporting and dashboard visualization.
+
+---
+
+## 📈 Business Metrics Generated
+
+The Gold layer computes several business-focused metrics that provide insights into financial operations and transaction quality.
+
+User Transaction Summary
+
+The user_transaction_summary table provides customer-level analytics including:
+
+* Total number of transactions
+* Total deposit amount
+* Total withdrawal amount
+* Overall transaction volume
+* Average transaction amount
+* Maximum transaction value
+* Minimum transaction value
+* Number of suspicious transactions
+* Suspicious transaction percentage
+* Number of invalid transactions
+* Invalid transaction percentage
+* Most recent transaction timestamp
+
+This dataset enables customer behavior analysis, transaction profiling, and account-level monitoring.
+
+---
+
+## Fraud Distribution Summary
+
+The fraud_summary table aggregates transaction records by fraud category and computes:
+
+* Fraud classification
+* Total number of fraud cases
+* Percentage of total transactions
+* Average transaction amount
+* Highest transaction amount
+
+These metrics provide valuable insights into the frequency and financial impact of different fraud scenarios, supporting fraud monitoring and risk assessment.
+
+---
+
+## Daily Transaction Summary
+
+The daily_transaction_summary table provides operational KPIs for each transaction date, including:
+
+* Total daily transactions
+* Daily transaction volume
+* Average daily transaction amount
+* Suspicious transaction count
+* Suspicious transaction percentage
+* Invalid transaction count
+* Invalid transaction percentage
+* Highest daily transaction
+* Lowest daily transaction
+
+These daily aggregates enable trend analysis, operational monitoring, and executive dashboard reporting.
+
+---
+
+## 📊 Validation & Monitoring
+
+Following the aggregation process, validation queries are executed to verify the successful creation of all Gold layer analytical datasets.
+
+The validation process confirms:
+
+* User-level summary generation.
+* Fraud distribution aggregation.
+* Daily KPI aggregation.
+* Record completeness across all analytical data marts.
+* Availability of business-ready metrics for downstream dashboards and reporting.
+
+These validation checks ensure that all Gold layer outputs are complete, accurate, and ready for consumption by business intelligence tools.
+
+---
+
+## 🗄️ Pipeline Role
+
+The Gold layer serves as the business intelligence layer of the Financial Audit Trail & Fraud Detection pipeline. By aggregating validated transaction data into meaningful business metrics, it bridges the gap between operational data processing and strategic decision-making.
+
+Rather than requiring analysts to query millions of individual transaction records, the Gold layer delivers concise, business-oriented data marts that support fraud monitoring, customer analytics, operational reporting, and executive dashboards. This layer enables organizations to monitor financial health, identify emerging risks, and make informed decisions using trusted, analytics-ready datasets.
+
+---
+
+## 📄 Source Code
+
+```SQL
+CREATE DATABASE IF NOT EXISTS fintech_gold;
+USE fintech_gold;
+
+/* =====================================================
+   DROP OLD TABLES
+===================================================== */
+DROP TABLE IF EXISTS user_transaction_summary;
+DROP TABLE IF EXISTS fraud_summary;
+DROP TABLE IF EXISTS daily_transaction_summary;
+
+/* =====================================================
+   USER LEVEL ANALYTICS MART
+   - Summary per user for transactions, volume, frauds, and invalids
+===================================================== */
+CREATE TABLE user_transaction_summary AS
+SELECT
+    user_id,
+
+    COUNT(*) AS total_transactions,
+
+    SUM(CASE WHEN transaction_type='deposit' THEN amount ELSE 0 END) AS total_deposits,
+    SUM(CASE WHEN transaction_type='withdrawal' THEN amount ELSE 0 END) AS total_withdrawals,
+
+    SUM(amount) AS total_volume,
+    AVG(amount) AS avg_transaction_amount,
+    MAX(amount) AS max_transaction,
+    MIN(amount) AS min_transaction,
+
+    SUM(CASE WHEN fraud_flag!='NORMAL' THEN 1 ELSE 0 END) AS suspicious_txn_count,
+    ROUND(100*SUM(CASE WHEN fraud_flag!='NORMAL' THEN 1 ELSE 0 END)/COUNT(*),2) AS suspicious_txn_percent,
+
+    SUM(CASE WHEN status_flag!='VALID' THEN 1 ELSE 0 END) AS invalid_txn_count,
+    ROUND(100*SUM(CASE WHEN status_flag!='VALID' THEN 1 ELSE 0 END)/COUNT(*),2) AS invalid_txn_percent,
+
+    MAX(transaction_timestamp) AS last_transaction_time
+
+FROM fintech_silver.clean_transactions
+GROUP BY user_id;
+
+/* =====================================================
+   FRAUD DISTRIBUTION MART
+   - Gives fraud categories, count, % of total, average, and max
+===================================================== */
+CREATE TABLE fraud_summary AS
+SELECT
+    fraud_flag,
+    COUNT(*) AS total_cases,
+    ROUND(100*COUNT(*)/(SELECT COUNT(*) FROM fintech_silver.clean_transactions),2) AS percent_of_total,
+    ROUND(AVG(amount),2) AS avg_amount,
+    MAX(amount) AS highest_amount
+FROM fintech_silver.clean_transactions
+GROUP BY fraud_flag
+ORDER BY total_cases DESC;
+
+/* =====================================================
+   DAILY KPI MART
+   - Daily transaction summary for dashboards
+===================================================== */
+CREATE TABLE daily_transaction_summary AS
+SELECT
+    DATE(transaction_timestamp) AS txn_date,
+
+    COUNT(*) AS total_transactions,
+    SUM(amount) AS total_volume,
+    ROUND(AVG(amount),2) AS avg_amount,
+
+    SUM(CASE WHEN fraud_flag!='NORMAL' THEN 1 ELSE 0 END) AS suspicious_count,
+    ROUND(100*SUM(CASE WHEN fraud_flag!='NORMAL' THEN 1 ELSE 0 END)/COUNT(*),2) AS suspicious_percent,
+
+    SUM(CASE WHEN status_flag!='VALID' THEN 1 ELSE 0 END) AS invalid_count,
+    ROUND(100*SUM(CASE WHEN status_flag!='VALID' THEN 1 ELSE 0 END)/COUNT(*),2) AS invalid_percent,
+
+    MAX(amount) AS highest_transaction,
+    MIN(amount) AS lowest_transaction
+
+FROM fintech_silver.clean_transactions
+GROUP BY DATE(transaction_timestamp)
+ORDER BY txn_date;
+
+/* =====================================================
+   VALIDATION CHECKS
+===================================================== */
+SELECT * FROM user_transaction_summary;
+SELECT * FROM fraud_summary;
+SELECT * FROM daily_transaction_summary;
+```
+---
+
+## 🖥️ Console Output
+
+<img width="1920" height="1080" alt="Screenshot (64)" src="https://github.com/user-attachments/assets/b10738fc-433b-48fc-9b89-8e032acad905" />
+
+<img width="1920" height="1080" alt="Screenshot (65)" src="https://github.com/user-attachments/assets/45a6655f-96dc-438f-b10f-a16b3da0e375" />
+
+<img width="1920" height="1080" alt="Screenshot (66)" src="https://github.com/user-attachments/assets/1722b75d-131a-41ce-98ba-f11786bea99d" />
+
+---
+
+## 📂 Gold Layer Output
+
+The Gold layer produces three analytical data marts optimized for business intelligence and reporting.
+
+MySQL\
+└── fintech_gold/\
+    ├── user_transaction_summary\
+    ├── fraud_summary\
+    └── daily_transaction_summary
+
+### User Transaction Summary
+
+Each record contains:
+
+* User ID
+* Total Transactions
+* Total Deposits
+* Total Withdrawals
+* Transaction Volume
+* Average Transaction Amount
+* Maximum Transaction
+* Minimum Transaction
+* Suspicious Transaction Count
+* Suspicious Transaction Percentage
+* Invalid Transaction Count
+* Invalid Transaction Percentage
+* Last Transaction Timestamp
+
+### Fraud Summary
+
+Each record contains:
+
+* Fraud Category
+* Total Cases
+* Percentage of Total Transactions
+* Average Transaction Amount
+* Highest Transaction Amount
+
+### Daily Transaction Summary
+
+Each record contains:
+
+* Transaction Date
+* Total Transactions
+* Total Transaction Volume
+* Average Transaction Amount
+* Suspicious Transaction Count
+* Suspicious Transaction Percentage
+* Invalid Transaction Count
+* Invalid Transaction Percentage
+* Highest Transaction Amount
+* Lowest Transaction Amount
+
+These analytical datasets serve as the primary input for Power BI dashboards, fraud monitoring systems, audit reporting, and executive decision-making.
+
+---
+
+## ✅ Gold Layer Summary
+
+The Gold layer transforms validated financial transactions into business-ready analytical data marts through comprehensive aggregation and KPI generation. By producing user-level transaction summaries, fraud distribution analytics, and daily operational metrics, the pipeline delivers actionable insights into customer activity, transaction quality, and financial risk. These optimized datasets enable efficient dashboard visualization, audit reporting, compliance monitoring, and data-driven decision-making, completing the Medallion Architecture with a trusted business intelligence layer.
