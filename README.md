@@ -133,6 +133,8 @@ The Silver layer performs data quality improvements, including:
 * Data normalization
 * Fraud flag generation
 
+<img width="1920" height="1080" alt="Screenshot (57)" src="https://github.com/user-attachments/assets/47edc2ca-c193-475f-adb3-9ba7b5f968f2" />
+
 This layer produces trusted datasets suitable for downstream processing.
 
 ### Gold Layer
