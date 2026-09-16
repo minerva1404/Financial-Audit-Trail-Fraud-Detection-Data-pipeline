@@ -133,6 +133,7 @@ The Silver layer performs data quality improvements, including:
 * Data normalization
 * Fraud flag generation
 
+### Fraud Flag Generation:
 <img width="1920" height="1080" alt="Screenshot (57)" src="https://github.com/user-attachments/assets/47edc2ca-c193-475f-adb3-9ba7b5f968f2" />
 
 This layer produces trusted datasets suitable for downstream processing.
@@ -149,6 +150,16 @@ The Gold layer computes business-level metrics including:
 * Fraud rate KPIs
 
 These aggregated datasets are optimized for business intelligence and reporting.
+
+The final output is to expected this way:
+### User Transcation Summary:
+<img width="1920" height="1080" alt="Screenshot (64)" src="https://github.com/user-attachments/assets/b10738fc-433b-48fc-9b89-8e032acad905" />
+
+### Fraud Summary:
+<img width="1920" height="1080" alt="Screenshot (65)" src="https://github.com/user-attachments/assets/45a6655f-96dc-438f-b10f-a16b3da0e375" />
+
+### Daily Transaction Summary:
+<img width="1920" height="1080" alt="Screenshot (66)" src="https://github.com/user-attachments/assets/1722b75d-131a-41ce-98ba-f11786bea99d" />
 
 ---
 
