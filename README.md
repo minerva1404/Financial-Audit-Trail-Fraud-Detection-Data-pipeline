@@ -2,7 +2,7 @@
 
 End-to-End Financial Data Engineering Pipeline using MySQL, PySpark & Medallion Architecture
 
-A production-inspired batch data pipeline that processes large-scale financial transactions through a Bronze → Silver → Gold Medallion Architecture, ensuring data quality, detecting suspicious activities, and generating analytics-ready datasets for audit reporting and fraud monitoring.
+A production-inspired batch data pipeline that processes large-scale financial transactions through a Bronze → Silver → Gold Medallion Architecture, ensuring data quality, detecting suspicious activities, and generating analytics-ready datasets for audit reporting and fraud monitoring with AWS cloud deployment.
 
 ---
 
@@ -248,7 +248,6 @@ Business-rule thresholds provide transparent, explainable fraud identification t
 * Machine Learning fraud scoring
 * Apache Airflow orchestration
 * Docker deployment
-* AWS cloud deployment
 * Automated data quality testing
 * Real-time fraud alerting
 * CI/CD using GitHub Actions
